@@ -134,6 +134,21 @@ compose_exec() {
   fi
 }
 
+ensure_serve_config() {
+  if [ -f "$PROJECT_DIR/tailscale/config/serve.json" ]; then
+    return
+  fi
+
+  mkdir -p "$PROJECT_DIR/tailscale/config"
+  if [ ! -f "$PROJECT_DIR/tailscale/config/serve.example.json" ]; then
+    fail "missing template tailscale/config/serve.example.json"
+  fi
+
+  log "Creating tailscale/config/serve.json from template..."
+  cp "$PROJECT_DIR/tailscale/config/serve.example.json" "$PROJECT_DIR/tailscale/config/serve.json"
+  log "Created $PROJECT_DIR/tailscale/config/serve.json. Update REPLACE_WITH_YOUR_TAILSCALE_DNS_NAME before using Tailscale Serve."
+}
+
 check_required_files() {
   if [ ! -f "$ENV_FILE" ]; then
     if [ -f "$PROJECT_DIR/.env.example" ]; then
@@ -236,17 +251,3 @@ check_required_files
 sync_repo
 pull_and_apply_stack
 show_status
-ensure_serve_config() {
-  if [ -f "$PROJECT_DIR/tailscale/config/serve.json" ]; then
-    return
-  fi
-
-  mkdir -p "$PROJECT_DIR/tailscale/config"
-  if [ ! -f "$PROJECT_DIR/tailscale/config/serve.example.json" ]; then
-    fail "missing template tailscale/config/serve.example.json"
-  fi
-
-  log "Creating tailscale/config/serve.json from template..."
-  cp "$PROJECT_DIR/tailscale/config/serve.example.json" "$PROJECT_DIR/tailscale/config/serve.json"
-  log "Created $PROJECT_DIR/tailscale/config/serve.json. Update REPLACE_WITH_YOUR_TAILSCALE_DNS_NAME before using Tailscale Serve."
-}
