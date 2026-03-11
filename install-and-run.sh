@@ -31,10 +31,35 @@ require_alpine() {
   command -v apk >/dev/null 2>&1 || fail "apk is required on Alpine"
 }
 
+enable_alpine_community_repo() {
+  if [ ! -f /etc/apk/repositories ]; then
+    return
+  fi
+
+  if grep -Eq '^[[:space:]]*#[[:space:]]*https?://.*/[0-9]+\.[0-9]+/community' /etc/apk/repositories; then
+    log "Enabling Alpine community repository..."
+    sed -i '/[[:space:]]*#.*\/community/s/^[[:space:]]*#\([[:space:]]*\)/\1/' /etc/apk/repositories
+  fi
+}
+
+install_docker_packages() {
+  if apk add --upgrade docker docker-cli-compose git tzdata; then
+    return
+  fi
+
+  log "docker-cli-compose package unavailable, trying fallback package names..."
+  if apk add --upgrade docker docker-compose git tzdata; then
+    return
+  fi
+
+  fail "failed to install required Alpine packages (docker, compose, git, tzdata). Check /etc/apk/repositories and network connectivity."
+}
+
 install_or_update_packages() {
   log "Installing or updating required packages..."
   apk update
-  apk add --upgrade docker docker-cli-compose git tzdata
+  enable_alpine_community_repo
+  install_docker_packages
 }
 
 configure_timezone() {

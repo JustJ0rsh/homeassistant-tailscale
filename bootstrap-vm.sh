@@ -41,8 +41,21 @@ enable_alpine_community_repo() {
 
   if grep -Eq '^[[:space:]]*#[[:space:]]*https?://.*/[0-9]+\.[0-9]+/community' /etc/apk/repositories; then
     log "Enabling Alpine community repository..."
-    sed -i 's/^[[:space:]]*#\([[:space:]]*https\?:\/\/[^[:space:]]*\/community\)/\1/' /etc/apk/repositories
+    sed -i '/[[:space:]]*#.*\/community/s/^[[:space:]]*#\([[:space:]]*\)/\1/' /etc/apk/repositories
   fi
+}
+
+install_docker_packages() {
+  if apk add --no-cache docker docker-cli-compose git tzdata; then
+    return
+  fi
+
+  log "docker-cli-compose package unavailable, trying fallback package names..."
+  if apk add --no-cache docker docker-compose git tzdata; then
+    return
+  fi
+
+  fail "failed to install required Alpine packages (docker, compose, git, tzdata). Check /etc/apk/repositories and network connectivity."
 }
 
 install_or_update_packages() {
@@ -51,7 +64,7 @@ install_or_update_packages() {
   log "Updating package indexes and installed packages..."
   apk update
   apk upgrade --available
-  apk add --no-cache docker docker-cli-compose git tzdata
+  install_docker_packages
 }
 
 configure_timezone() {
