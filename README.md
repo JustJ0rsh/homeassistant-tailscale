@@ -5,6 +5,12 @@ This compose project runs:
 - `homeassistant` on the host network, matching Home Assistant's container guidance.
 - `tailscale` as a separate container that joins your tailnet and serves Home Assistant from `http://127.0.0.1:8123`.
 
+It is tuned conservatively for removable storage:
+
+- Docker log rotation is capped to reduce uncontrolled log growth.
+- Home Assistant starts with a small `recorder` retention window to reduce write volume.
+- `/tmp` inside the Home Assistant container is in memory instead of on disk.
+
 ## Files
 
 - `docker-compose.yml`: service definitions
@@ -43,3 +49,4 @@ The first Home Assistant login and onboarding happen in the web UI after the con
 - If you use Zigbee/Z-Wave USB hardware later, add `devices:` mappings to `homeassistant`.
 - If you prefer not to use an auth key, leave `TS_AUTHKEY` empty and run `docker exec -it tailscale tailscale up` after the container starts. That will print a login URL.
 - The installer script currently targets Alpine Linux because this host uses Alpine and OpenRC.
+- A USB SSD is much better than a flash drive for this workload. Flash drives are the highest-risk part of this deployment.

@@ -6,6 +6,7 @@ PROJECT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 COMPOSE_FILE="$PROJECT_DIR/docker-compose.yml"
 ENV_FILE="$PROJECT_DIR/.env"
 SERVE_FILE="$PROJECT_DIR/tailscale/config/serve.json"
+MIN_DISK_KB=4194304
 
 log() {
   printf '%s\n' "$*"
@@ -33,6 +34,14 @@ install_or_update_packages() {
   log "Installing or updating required packages..."
   apk update
   apk add --upgrade docker docker-cli-compose git
+}
+
+warn_if_low_disk() {
+  available_kb=$(df -Pk "$PROJECT_DIR" | awk 'NR==2 {print $4}')
+  if [ -n "$available_kb" ] && [ "$available_kb" -lt "$MIN_DISK_KB" ]; then
+    log "WARNING: less than 4 GB of free space is available for $PROJECT_DIR."
+    log "Home Assistant history, image pulls, and updates can exhaust small removable media quickly."
+  fi
 }
 
 enable_and_start_docker() {
@@ -63,6 +72,10 @@ check_project_files() {
     "$PROJECT_DIR/homeassistant/config" \
     "$PROJECT_DIR/tailscale/state" \
     "$PROJECT_DIR/tailscale/config"
+
+  if [ ! -f "$PROJECT_DIR/homeassistant/config/configuration.yaml" ]; then
+    fail "missing $PROJECT_DIR/homeassistant/config/configuration.yaml"
+  fi
 
   if grep -q 'REPLACE_WITH_YOUR_TAILSCALE_DNS_NAME' "$SERVE_FILE"; then
     log "Tailscale Serve config still has the placeholder DNS name."
@@ -97,6 +110,7 @@ show_status() {
 require_root
 require_alpine
 install_or_update_packages
+warn_if_low_disk
 enable_and_start_docker
 check_commands
 check_project_files

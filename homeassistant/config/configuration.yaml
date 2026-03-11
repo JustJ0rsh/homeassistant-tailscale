@@ -1,0 +1,14 @@
+# Conservative defaults for slower removable storage.
+default_config:
+
+recorder:
+  purge_keep_days: 7
+  auto_purge: true
+  commit_interval: 30
+
+history:
+
+logbook:
+
+frontend:
+
