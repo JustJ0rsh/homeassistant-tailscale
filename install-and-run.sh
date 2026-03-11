@@ -23,23 +23,23 @@ require_root() {
     fail "run this script as root"
   fi
 }
+set_alpine_repositories() {
+  if [ ! -f /etc/apk/repositories ]; then
+    fail "missing /etc/apk/repositories"
+  fi
+
+  log "Configuring Alpine repositories to kernel mirror v3.23..."
+  cat <<'EOF' > /etc/apk/repositories
+https://mirrors.edge.kernel.org/alpine/v3.23/main
+https://mirrors.edge.kernel.org/alpine/v3.23/community
+EOF
+}
 
 require_alpine() {
   if [ ! -f /etc/alpine-release ]; then
     fail "this script currently supports Alpine Linux only"
   fi
   command -v apk >/dev/null 2>&1 || fail "apk is required on Alpine"
-}
-
-enable_alpine_community_repo() {
-  if [ ! -f /etc/apk/repositories ]; then
-    return
-  fi
-
-  if grep -Eq '^[[:space:]]*#[[:space:]]*https?://.*/[0-9]+\.[0-9]+/community' /etc/apk/repositories; then
-    log "Enabling Alpine community repository..."
-    sed -i '/[[:space:]]*#.*\/community/s/^[[:space:]]*#\([[:space:]]*\)/\1/' /etc/apk/repositories
-  fi
 }
 
 install_docker_packages() {
@@ -56,9 +56,9 @@ install_docker_packages() {
 }
 
 install_or_update_packages() {
+  set_alpine_repositories
   log "Installing or updating required packages..."
   apk update
-  enable_alpine_community_repo
   install_docker_packages
 }
 
