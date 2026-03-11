@@ -37,7 +37,26 @@ cd /root/homeassistant-tailscale
 ./install-and-run.sh
 ```
 
+For a one-shot bootstrap/rebuild (system packages + optional repo/image refresh + compose deploy), run:
+
+```sh
+cd /root/homeassistant-tailscale
+./bootstrap-vm.sh
+```
+
+By default it runs with:
+
+- `REPO_UPDATE=1`
+- `IMAGE_REFRESH=1`
+- `FORCE_RECREATE=1`
+- `PRUNE_IMAGES=0`
+- `TIMEZONE_NAME` from host (or `America/Chicago` if unset)
+
+You can override these defaults by exporting environment variables before running the script.
+
 The installer also sets the host timezone on Alpine. By default it uses `America/Chicago`; override that for another zone with `TIMEZONE_NAME=Region/City ./install-and-run.sh`.
+
+If you want a beginner-friendly step-by-step setup guide, use [`HOWTO.md`](/root/homeassistant-tailscale/HOWTO.md).
 
 ## Access
 
