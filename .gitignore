@@ -1,0 +1,7 @@
+.env
+homeassistant/config/*
+!homeassistant/config/.gitkeep
+tailscale/state/*
+!tailscale/state/.gitkeep
+tailscale/config/serve.json
+.DS_Store
