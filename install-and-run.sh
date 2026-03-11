@@ -55,6 +55,37 @@ install_docker_packages() {
   fail "failed to install required Alpine packages (docker, compose, git, tzdata). Check /etc/apk/repositories and network connectivity."
 }
 
+ensure_serve_config() {
+  if [ -f "$SERVE_FILE" ]; then
+    return
+  fi
+
+  mkdir -p "$PROJECT_DIR/tailscale/config"
+  log "Creating default tailscale/config/serve.json..."
+  cat <<'EOF' > "$SERVE_FILE"
+{
+  "TCP": {
+    "443": {
+      "HTTPS": true
+    }
+  },
+  "Web": {
+    "REPLACE_WITH_YOUR_TAILSCALE_DNS_NAME:443": {
+      "Handlers": {
+        "/": {
+          "Proxy": "http://127.0.0.1:8123"
+        }
+      }
+    }
+  },
+  "AllowFunnel": {
+    "REPLACE_WITH_YOUR_TAILSCALE_DNS_NAME:443": false
+  }
+}
+EOF
+  log "Created $SERVE_FILE. Update REPLACE_WITH_YOUR_TAILSCALE_DNS_NAME before using Tailscale Serve."
+}
+
 install_or_update_packages() {
   set_alpine_repositories
   log "Installing or updating required packages..."
@@ -112,7 +143,7 @@ check_commands() {
 check_project_files() {
   [ -f "$COMPOSE_FILE" ] || fail "missing $COMPOSE_FILE"
   [ -f "$ENV_FILE" ] || fail "missing $ENV_FILE"
-  [ -f "$SERVE_FILE" ] || fail "missing $SERVE_FILE"
+  ensure_serve_config
 
   mkdir -p \
     "$PROJECT_DIR/homeassistant/config" \

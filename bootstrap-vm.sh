@@ -146,7 +146,7 @@ check_required_files() {
   fi
 
   [ -f "$COMPOSE_FILE" ] || fail "missing $COMPOSE_FILE"
-  [ -f "$PROJECT_DIR/tailscale/config/serve.json" ] || fail "missing $PROJECT_DIR/tailscale/config/serve.json"
+  ensure_serve_config
 
   mkdir -p \
     "$PROJECT_DIR/homeassistant/config" \
@@ -236,3 +236,33 @@ check_required_files
 sync_repo
 pull_and_apply_stack
 show_status
+ensure_serve_config() {
+  if [ -f "$PROJECT_DIR/tailscale/config/serve.json" ]; then
+    return
+  fi
+
+  mkdir -p "$PROJECT_DIR/tailscale/config"
+  log "Creating default tailscale/config/serve.json..."
+  cat <<'EOF' > "$PROJECT_DIR/tailscale/config/serve.json"
+{
+  "TCP": {
+    "443": {
+      "HTTPS": true
+    }
+  },
+  "Web": {
+    "REPLACE_WITH_YOUR_TAILSCALE_DNS_NAME:443": {
+      "Handlers": {
+        "/": {
+          "Proxy": "http://127.0.0.1:8123"
+        }
+      }
+    }
+  },
+  "AllowFunnel": {
+    "REPLACE_WITH_YOUR_TAILSCALE_DNS_NAME:443": false
+  }
+}
+EOF
+  log "Created $PROJECT_DIR/tailscale/config/serve.json. Update REPLACE_WITH_YOUR_TAILSCALE_DNS_NAME before using Tailscale Serve."
+}
