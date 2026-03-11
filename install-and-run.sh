@@ -61,28 +61,12 @@ ensure_serve_config() {
   fi
 
   mkdir -p "$PROJECT_DIR/tailscale/config"
-  log "Creating default tailscale/config/serve.json..."
-  cat <<'EOF' > "$SERVE_FILE"
-{
-  "TCP": {
-    "443": {
-      "HTTPS": true
-    }
-  },
-  "Web": {
-    "REPLACE_WITH_YOUR_TAILSCALE_DNS_NAME:443": {
-      "Handlers": {
-        "/": {
-          "Proxy": "http://127.0.0.1:8123"
-        }
-      }
-    }
-  },
-  "AllowFunnel": {
-    "REPLACE_WITH_YOUR_TAILSCALE_DNS_NAME:443": false
-  }
-}
-EOF
+  if [ ! -f "$PROJECT_DIR/tailscale/config/serve.example.json" ]; then
+    fail "missing template $PROJECT_DIR/tailscale/config/serve.example.json"
+  fi
+
+  log "Creating default tailscale/config/serve.json from template..."
+  cp "$PROJECT_DIR/tailscale/config/serve.example.json" "$SERVE_FILE"
   log "Created $SERVE_FILE. Update REPLACE_WITH_YOUR_TAILSCALE_DNS_NAME before using Tailscale Serve."
 }
 

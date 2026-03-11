@@ -5,4 +5,5 @@ homeassistant/config/*
 tailscale/state/*
 !tailscale/state/.gitkeep
 tailscale/config/serve.json
+!tailscale/config/serve.example.json
 .DS_Store

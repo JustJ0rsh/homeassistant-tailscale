@@ -1,0 +1,19 @@
+{
+  "TCP": {
+    "443": {
+      "HTTPS": true
+    }
+  },
+  "Web": {
+    "REPLACE_WITH_YOUR_TAILSCALE_DNS_NAME:443": {
+      "Handlers": {
+        "/": {
+          "Proxy": "http://127.0.0.1:8123"
+        }
+      }
+    }
+  },
+  "AllowFunnel": {
+    "REPLACE_WITH_YOUR_TAILSCALE_DNS_NAME:443": false
+  }
+}
