@@ -34,7 +34,20 @@ require_alpine() {
   command -v apk >/dev/null 2>&1 || fail "apk is required on Alpine"
 }
 
+enable_alpine_community_repo() {
+  if [ ! -f /etc/apk/repositories ]; then
+    return
+  fi
+
+  if grep -Eq '^[[:space:]]*#[[:space:]]*https?://.*/[0-9]+\.[0-9]+/community' /etc/apk/repositories; then
+    log "Enabling Alpine community repository..."
+    sed -i 's/^[[:space:]]*#\([[:space:]]*https\?:\/\/[^[:space:]]*\/community\)/\1/' /etc/apk/repositories
+  fi
+}
+
 install_or_update_packages() {
+  enable_alpine_community_repo
+
   log "Updating package indexes and installed packages..."
   apk update
   apk upgrade --available
