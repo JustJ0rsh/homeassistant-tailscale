@@ -37,6 +37,8 @@ cd /root/homeassistant-tailscale
 ./install-and-run.sh
 ```
 
+The installer also sets the host timezone on Alpine. By default it uses `America/Chicago`; override that for another zone with `TIMEZONE_NAME=Region/City ./install-and-run.sh`.
+
 ## Access
 
 - Local network: `http://HOST_IP:8123`

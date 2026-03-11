@@ -7,6 +7,7 @@ COMPOSE_FILE="$PROJECT_DIR/docker-compose.yml"
 ENV_FILE="$PROJECT_DIR/.env"
 SERVE_FILE="$PROJECT_DIR/tailscale/config/serve.json"
 MIN_DISK_KB=4194304
+TIMEZONE_NAME=${TIMEZONE_NAME:-America/Chicago}
 
 log() {
   printf '%s\n' "$*"
@@ -33,7 +34,27 @@ require_alpine() {
 install_or_update_packages() {
   log "Installing or updating required packages..."
   apk update
-  apk add --upgrade docker docker-cli-compose git
+  apk add --upgrade docker docker-cli-compose git tzdata
+}
+
+configure_timezone() {
+  zoneinfo_path="/usr/share/zoneinfo/$TIMEZONE_NAME"
+
+  if [ ! -f "$zoneinfo_path" ]; then
+    fail "timezone data not found for $TIMEZONE_NAME"
+  fi
+
+  if [ -d /etc/localtime ]; then
+    rm -rf /etc/localtime
+  else
+    rm -f /etc/localtime
+  fi
+
+  ln -s "$zoneinfo_path" /etc/localtime
+  printf '%s\n' "$TIMEZONE_NAME" > /etc/timezone
+  printf '%s\n' "export TZ=$TIMEZONE_NAME" > /etc/profile.d/10timezone.sh
+
+  log "Timezone set to $TIMEZONE_NAME"
 }
 
 warn_if_low_disk() {
@@ -110,6 +131,7 @@ show_status() {
 require_root
 require_alpine
 install_or_update_packages
+configure_timezone
 warn_if_low_disk
 enable_and_start_docker
 check_commands
